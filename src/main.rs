@@ -1,3 +1,6 @@
+use pcap::Device;
+
 fn main() {
-    println!("Hello, world!");
+    let devices = Device::list();
+    println!("moi");
 }
