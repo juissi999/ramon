@@ -7,7 +7,7 @@ fn main() {
 
     let mut devindice = 0;
 
-    for device in devices {
+    for device in &devices {
         println!("Device {} {:?}", devindice, device.name);
         devindice+=1;
     }
@@ -21,6 +21,12 @@ fn main() {
         .expect("Please type a number.");
 
     if 0 < selection && selection < devindice {
-        println!("Choosing device {}", selection);
-    } 
+        println!("Choosing device {}", devices[selection as usize].name);
+        let mut cap = pcap::Device::lookup().unwrap().open().unwrap();
+
+        loop {
+            // get a packet and print its bytes
+            println!("{:?}", cap.next());
+        }
+    }
 }
