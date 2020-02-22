@@ -21,8 +21,13 @@ fn main() {
         .expect("Please type a number.");
 
     if 0 < selection && selection < devindice {
-        println!("Choosing device {}", devices[selection as usize].name);
-        let mut cap = pcap::Device::lookup().unwrap().open().unwrap();
+       // let mut cap = &devices[selection as usize]; //.open().unwrap();
+       let dn = String::from(&devices[selection as usize].name);
+       let dn1: &str = &dn;
+        println!("Choosing device {}", dn1);
+
+       let mut cap = pcap::Capture::from_device(dn1).unwrap().open().unwrap(); //.open().unwrap();
+//        cap.open().unwrap();
 
         loop {
             // get a packet and print its bytes
