@@ -18,16 +18,15 @@ fn main() {
         .expect("Failed to read line.");
 
     let selection: u32 = selection.trim().parse()
-        .expect("Please type a number.");
+        .expect("Please type an integer.");
 
-    if 0 < selection && selection < devindice {
-       // let mut cap = &devices[selection as usize]; //.open().unwrap();
-       let dn = String::from(&devices[selection as usize].name);
-       let dn1: &str = &dn;
+    if selection < devindice {
+        // let mut cap = &devices[selection as usize]; //.open().unwrap();
+        let dn = String::from(&devices[selection as usize].name);
+        let dn1: &str = &dn;
         println!("Choosing device {}", dn1);
 
-       let mut cap = pcap::Capture::from_device(dn1).unwrap().open().unwrap(); //.open().unwrap();
-//        cap.open().unwrap();
+        let mut cap = pcap::Capture::from_device(dn1).unwrap().open().unwrap(); //.open().unwrap();
 
         loop {
             // get a packet and print its bytes
