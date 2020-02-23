@@ -34,7 +34,7 @@ fn main() {
             // get a packet and print its bytes
             let p = cap.next().unwrap();
             println!("packet {}:", index);
-            println!("{:?}\n{:?}", p.header, p.data);
+            println!("{:?}\n{:x?}", p.header, p.data);
             index += 1;
         }
     }
