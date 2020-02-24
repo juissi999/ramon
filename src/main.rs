@@ -34,17 +34,24 @@ fn main() {
             // get a packet and print its bytes
             let p = cap.next().unwrap();
             println!("packet {}:", index);
-            println!("Eth protocol:{}", eth_protocol(p.data));
-            ipv4_fields(&p.data[16..]);
-            println!("data:{:?}", p.data);
+            print_packet(p.data);
             index += 1;
         }
     }
 }
 
-fn eth_protocol(data: &[u8]) -> String {
-    println!("{}", data[14]);
+fn print_packet(pdata: &[u8]) {
+    // a function that handles packet printing process
+    let ethp:String = eth_protocol(pdata);
+    println!("Protocol inside eth:{}", ethp);
+    if ethp == "ipv4" {
+        ipv4_fields(&pdata[16..]);
+    }
+    println!("data:{:?}", pdata);
+}
 
+fn eth_protocol(data: &[u8]) -> String {
+    // analyze ethernet packet content
     if data[14]==0x08 && data[15]==0x00 {
         String::from("ipv4")
     } else if data[14]==0x08 && data[15]==0x06 {
@@ -57,7 +64,26 @@ fn eth_protocol(data: &[u8]) -> String {
 }
 
 fn ipv4_fields(data: &[u8]) {
+    // analyze ipv4-packet content
+
+    // println!("IP header len:{:x?}", &data[0]);
     println!("IP Protocol: {}", &data[9]);
-    println!("source: {:?}", &data[12..16]);
-    println!("destination: {:?}", &data[16..20]);
+    println!("source: {}", list_2_ip(&data[12..16]));
+    println!("destination: {}", list_2_ip(&data[16..20]));
+}
+
+fn list_2_ip(iparray: &[u8]) -> String {
+    // generate ip-address type string from array of u8
+
+    let mut ipstr = String::from("");
+
+    for num in iparray {
+        ipstr.push_str(&num.to_string());
+        ipstr.push('.');
+    }
+
+    // remove last unnecessary dot
+    ipstr.pop();
+
+    ipstr
 }
