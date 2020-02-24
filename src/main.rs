@@ -43,7 +43,7 @@ fn main() {
 fn print_packet(pdata: &[u8]) {
     // a function that handles packet printing process
     let ethp:String = eth_protocol(pdata);
-    println!("Protocol inside eth:{}", ethp);
+    println!("Protocol inside eth: {}", ethp);
     if ethp == "ipv4" {
         ipv4_fields(&pdata[16..]);
     }
@@ -63,13 +63,27 @@ fn eth_protocol(data: &[u8]) -> String {
     }
 }
 
+fn ip_protocol(data: u8) -> String {
+    // analyze ethernet packet content
+    if data==0x06{
+        String::from("TCP")
+    } else if data==0x11{
+        String::from("UDP")
+    } else if data==0x01{
+        String::from("ICMP")
+    } else {
+        String::from("unknown")
+    }
+}
+
+
 fn ipv4_fields(data: &[u8]) {
     // analyze ipv4-packet content
 
     // println!("IP header len:{:x?}", &data[0]);
-    println!("IP Protocol: {}", &data[9]);
-    println!("source: {}", list_2_ip(&data[12..16]));
-    println!("destination: {}", list_2_ip(&data[16..20]));
+    println!("Protocol inside IP: {}", ip_protocol(data[9]));
+    println!("source IP: {}", list_2_ip(&data[12..16]));
+    println!("destination IP: {}", list_2_ip(&data[16..20]));
 }
 
 fn list_2_ip(iparray: &[u8]) -> String {
