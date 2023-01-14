@@ -16,7 +16,7 @@ pub fn listen_and_print_packets(mut capture: pcap::Capture<pcap::Active>) {
     let mut index: u32 = 1;
     loop {
         // get a packet and print its bytes
-        let packet = capture.next().unwrap();
+        let packet = capture.next_packet().unwrap();
         println!("packet {}:", index);
         print_packet(packet);
         index += 1;
