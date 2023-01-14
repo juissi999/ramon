@@ -1,3 +1,14 @@
+use pcap;
+
+pub fn print_network_interfaces_list(network_interfaces: &Vec<pcap::Device>) {
+    
+    let mut devindice = 0;
+    for device in network_interfaces {
+        println!("Device {} {:?}", devindice, device.name);
+        devindice+=1;
+    }
+}
+
 pub fn print_packet(packet: pcap::Packet) {
     // a function that handles packet printing process
 
