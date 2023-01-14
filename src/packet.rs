@@ -9,6 +9,20 @@ pub fn print_network_interfaces_list(network_interfaces: &Vec<pcap::Device>) {
     }
 }
 
+// pub fn listen_and_print_packets<T:pcap::Activated>(mut cap: pcap::Capture<T>) {
+pub fn listen_and_print_packets(mut capture: pcap::Capture<pcap::Active>) {
+    // print packets continously
+
+    let mut index: u32 = 1;
+    loop {
+        // get a packet and print its bytes
+        let packet = capture.next().unwrap();
+        println!("packet {}:", index);
+        print_packet(packet);
+        index += 1;
+    }
+}
+
 pub fn print_packet(packet: pcap::Packet) {
     // a function that handles packet printing process
 

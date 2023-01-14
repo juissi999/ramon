@@ -17,22 +17,16 @@ fn main() {
 
     let selection: usize = usize::try_from(selection_raw).unwrap();
 
-    // get the device with that indice
-    if selection < network_interfaces.len() {
-        let dn = String::from(&network_interfaces[selection as usize].name);
-        let dn1: &str = &dn;
-
-        println!("Choosing device {}, printing packets..", dn1);
-        let mut cap = pcap::Capture::from_device(dn1).unwrap().open().unwrap(); //.open().unwrap();
-
-        // print packets continously
-        let mut index: u32 = 1;
-        loop {
-            // get a packet and print its bytes
-            let p = cap.next().unwrap();
-            println!("packet {}:", index);
-            packet::print_packet(p);
-            index += 1;
-        }
+    if network_interfaces.len() < selection {
+        panic!("Selected device does not exist.");
     }
+
+    // get the device from device list according to index
+    let device = &network_interfaces[selection];
+    let device_name: &str = &device.name;
+
+    println!("Choosing device {}, printing packets..", device_name);
+    let capture = pcap::Capture::from_device(device_name).unwrap().open().unwrap();
+
+    packet::listen_and_print_packets(capture);
 }
