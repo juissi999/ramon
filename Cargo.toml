@@ -8,4 +8,3 @@ edition = "2018"
 
 [dependencies]
 pcap = "1.0.0"
-piston_window = "0.98.0"
