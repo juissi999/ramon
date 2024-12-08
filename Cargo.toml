@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 pcap = "2.0.0"
+sdl2 = "0.35"
