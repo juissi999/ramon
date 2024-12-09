@@ -1,6 +1,7 @@
 extern crate sdl2;
 use crate::structs::PacketContents;
 
+use std::time::Instant;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
@@ -8,6 +9,7 @@ use sdl2::rect::Point;
 
 use std::time::Duration;
 
+static VISUALIZATION_DECAY:std::time::Duration = std::time::Duration::from_secs(2);
 
 pub fn display(packets: std::sync::Arc<std::sync::Mutex<Vec<PacketContents>>>) -> Result<(), String> {
     let sdl_context = sdl2::init()?;
@@ -31,6 +33,7 @@ pub fn display(packets: std::sync::Arc<std::sync::Mutex<Vec<PacketContents>>>) -
     let mut event_pump = sdl_context.event_pump()?;
 
     let mut printed_points = Vec::new();
+    let mut durations: Vec<std::time::Instant> = Vec::new();
     'running: loop {
         for event in event_pump.poll_iter() {
             match event {
@@ -54,13 +57,28 @@ pub fn display(packets: std::sync::Arc<std::sync::Mutex<Vec<PacketContents>>>) -
         let mut packet_vector = packets.lock().unwrap();
         println!("len packets:{}", packet_vector.len());
 
+        let now = Instant::now();
+
         for packet in packet_vector.iter() {
             let x = ((packet.source_port as f64) / 65535.0 * width as f64).floor() as i32;
             let y = ((packet.length as f64) / 65535.0 * height as f64).floor() as i32;
             printed_points.push(Point::new(x, y));
+            durations.push(now);
             //println!("Received packet.");
         }
         packet_vector.clear();
+
+        // remove old points from draw vector
+        let mut idx = 0 as usize;
+
+        while idx < durations.len() {
+            if durations[idx].elapsed() > VISUALIZATION_DECAY {
+                durations.remove(idx);
+                printed_points.remove(idx);
+                continue;
+            }
+            idx = idx + 1;
+        }
 
         canvas.set_draw_color(Color::RGB(211, 211, 211));
         canvas.clear();
