@@ -9,7 +9,7 @@ mod structs;
 
 
 fn main() {
-    // create cross-threads channel 
+    // create cross-threads mutex
     let packets = Arc::new(Mutex::new(vec![]));
     let packets_vector_clone = Arc::clone(&packets);
 
@@ -53,12 +53,6 @@ fn main() {
 
 
     let capture = pcap::Capture::from_device(device_name).unwrap().open().unwrap();
-
-    // if pcap::pcap_set_rfmon(capture, 1) != 0 {
-    //     eprintln!("Error setting RFMON mode");
-    //     pcap_close(capture);
-    //     return;
-    // }
 
     packet::listen_and_print_packets(capture, packets);
 }

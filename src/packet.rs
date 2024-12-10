@@ -1,8 +1,6 @@
 use pcap;
 
 use crate::structs::PacketContents;
-//use std::time::Instant;
-
 
 pub fn print_network_interfaces_list(network_interfaces: &Vec<pcap::Device>) {
     
@@ -16,7 +14,6 @@ pub fn print_network_interfaces_list(network_interfaces: &Vec<pcap::Device>) {
 pub fn listen_and_print_packets(mut capture: pcap::Capture<pcap::Active>, packets: std::sync::Arc<std::sync::Mutex<Vec<PacketContents>>>) {
     // print packets continously
 
-    //let now = Instant::now();
     loop {
         // get a packet and print its bytes
         let packet_result = capture.next_packet();
@@ -27,8 +24,6 @@ pub fn listen_and_print_packets(mut capture: pcap::Capture<pcap::Active>, packet
             },
             Err(error) => println!("Packet capture error: {error:?}"),
         };
-        //let elapsed_time = now.elapsed();
-        //println!("elapsed_time: {}", elapsed_time.as_millis());
     }
 }
 
@@ -41,13 +36,11 @@ pub fn parse_packet(packet: pcap::Packet) -> PacketContents{
     // a function that handles packet printing process
     let pdata:&[u8] = packet.data;
     let ethp:String = network_layer_protocol(pdata);
-    //println!("Protocol inside eth: {}", ethp);
     let mut ipv4_fields: (String, String, String) = (String::new(), String::new(), String::new());
     let mut tcp_udp_fields: (u16, u16) = (0, 0);
     if ethp == "ipv4" {
         ipv4_fields = parse_ipv4_fields(&pdata[14..]);
         if ipv4_fields.0 == "TCP" || ipv4_fields.0 == "UDP" {
-            //println!("len {}", &pdata.len());
             tcp_udp_fields = parse_tcp_udp_fields(&pdata[14+20..]);
         }
     }
