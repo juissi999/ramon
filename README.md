@@ -1,6 +1,9 @@
 # ramon
 Rust pAcket MONitor
 
+### Idea
+Perform visualization for network traffic using rust.
+
 ### Installation
 On Ubuntu Linux, install rust, libpcap-dev and libsdl2-dev
 
