@@ -27,12 +27,13 @@ pub fn display(packets: std::sync::Arc<std::sync::Mutex<Vec<PacketContents>>>) -
 
     let mut canvas = window.into_canvas().build().map_err(|e| e.to_string())?;
 
-    canvas.set_draw_color(Color::RGB(211, 211, 211));
+    canvas.set_draw_color(Color::RGB(51, 51, 51));
     canvas.clear();
     canvas.present();
     let mut event_pump = sdl_context.event_pump()?;
 
-    let mut printed_points = Coordinates::new(VISUALIZATION_DECAY);
+    let mut printed_tcp = Coordinates::new(VISUALIZATION_DECAY);
+    let mut printed_udp = Coordinates::new(VISUALIZATION_DECAY);
     'running: loop {
         for event in event_pump.poll_iter() {
             match event {
@@ -61,20 +62,27 @@ pub fn display(packets: std::sync::Arc<std::sync::Mutex<Vec<PacketContents>>>) -
         for packet in packet_vector.iter() {
             let x = ((packet.source_port as f64) / 65535.0 * width as f64).floor() as i32;
             let y = ((packet.length as f64) / 1500.0 * height as f64).floor() as i32;
-            printed_points.add_point(x, y, now);
+            if packet.transmission_protocol == "TCP" {
+                printed_tcp.add_point(x, y, now);
+            } else if packet.transmission_protocol == "UDP" {
+                printed_udp.add_point(x, y, now);
+            }
             //println!("Received packet.");
         }
         packet_vector.clear();
 
         // remove old points from draw vector
-        printed_points.clear_old();
+        printed_tcp.clear_old();
+        printed_udp.clear_old();
 
-        canvas.set_draw_color(Color::RGB(211, 211, 211));
+        canvas.set_draw_color(Color::RGB(51, 51, 51));
         canvas.clear();
 
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 10));
-        canvas.set_draw_color(Color::RGB(0, 0, 0));
-        canvas.draw_points(printed_points.get_points().as_slice()).unwrap();
+        canvas.set_draw_color(Color::RGB(255, 182, 193));
+        canvas.draw_points(printed_tcp.get_points().as_slice()).unwrap();
+        canvas.set_draw_color(Color::RGB(144, 238, 144));
+        canvas.draw_points(printed_udp.get_points().as_slice()).unwrap();
         canvas.present();
         // The rest of the game loop goes here...
     }
