@@ -1,15 +1,15 @@
 extern crate sdl2;
 use crate::structs::PacketContents;
+use crate::structs::Coordinates;
 
 use std::time::Instant;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
-use sdl2::rect::Point;
 
 use std::time::Duration;
 
-static VISUALIZATION_DECAY:std::time::Duration = std::time::Duration::from_secs(2);
+static VISUALIZATION_DECAY:std::time::Duration = std::time::Duration::from_secs(10);
 
 pub fn display(packets: std::sync::Arc<std::sync::Mutex<Vec<PacketContents>>>) -> Result<(), String> {
     let sdl_context = sdl2::init()?;
@@ -32,8 +32,7 @@ pub fn display(packets: std::sync::Arc<std::sync::Mutex<Vec<PacketContents>>>) -
     canvas.present();
     let mut event_pump = sdl_context.event_pump()?;
 
-    let mut printed_points = Vec::new();
-    let mut durations: Vec<std::time::Instant> = Vec::new();
+    let mut printed_points = Coordinates::new(VISUALIZATION_DECAY);
     'running: loop {
         for event in event_pump.poll_iter() {
             match event {
@@ -61,31 +60,21 @@ pub fn display(packets: std::sync::Arc<std::sync::Mutex<Vec<PacketContents>>>) -
 
         for packet in packet_vector.iter() {
             let x = ((packet.source_port as f64) / 65535.0 * width as f64).floor() as i32;
-            let y = ((packet.length as f64) / 65535.0 * height as f64).floor() as i32;
-            printed_points.push(Point::new(x, y));
-            durations.push(now);
+            let y = ((packet.length as f64) / 1500.0 * height as f64).floor() as i32;
+            printed_points.add_point(x, y, now);
             //println!("Received packet.");
         }
         packet_vector.clear();
 
         // remove old points from draw vector
-        let mut idx = 0 as usize;
-
-        while idx < durations.len() {
-            if durations[idx].elapsed() > VISUALIZATION_DECAY {
-                durations.remove(idx);
-                printed_points.remove(idx);
-                continue;
-            }
-            idx = idx + 1;
-        }
+        printed_points.clear_old();
 
         canvas.set_draw_color(Color::RGB(211, 211, 211));
         canvas.clear();
 
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 10));
         canvas.set_draw_color(Color::RGB(0, 0, 0));
-        canvas.draw_points(printed_points.as_slice()).unwrap();
+        canvas.draw_points(printed_points.get_points().as_slice()).unwrap();
         canvas.present();
         // The rest of the game loop goes here...
     }
