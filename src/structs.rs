@@ -7,13 +7,13 @@ pub struct PacketContents {
     pub destination_addr: String,
     pub source_port: u16,
     pub destination_port: u16,
-    pub length: i32,
+    pub length: u16,
     pub data: Vec<u8>
 }
 
 pub struct Coordinate {
-    pub x: i32,
-    pub y: i32,
+    pub x: u16,
+    pub y: u16,
     pub created: Instant
 }
 
@@ -30,7 +30,7 @@ impl Coordinates {
         }
     }
 
-    pub fn add_point(&mut self, x:i32, y:i32, now: Instant) {
+    pub fn add_point(&mut self, x:u16, y:u16, now: Instant) {
         self.points.push(Coordinate{x, y, created:now});
     }
 
@@ -47,11 +47,12 @@ impl Coordinates {
         };
     }
 
-    pub fn get_points(&self) -> Vec<Point> {
+    pub fn get_points(&self, width_translation: f64, height_translation: f64) -> Vec<Point> {
         // return points as vector
         let mut printed_points = Vec::new();
         for point in self.points.iter() {
-            printed_points.push(Point::new(point.x, point.y));
+            printed_points.push(
+                Point::new((point.x as f64*width_translation) as i32, (point.y as f64*height_translation) as i32));
         };
         printed_points
     }
