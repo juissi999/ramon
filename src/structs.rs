@@ -47,12 +47,12 @@ impl Coordinates {
         };
     }
 
-    pub fn get_points(&self, width_translation: f64, height_translation: f64) -> Vec<Point> {
+    pub fn get_points(&self, width_translation: f64, height_translation: f64, offset: i32) -> Vec<Point> {
         // return points as vector
         let mut printed_points = Vec::new();
         for point in self.points.iter() {
             printed_points.push(
-                Point::new((point.x as f64*width_translation) as i32, (point.y as f64*height_translation) as i32));
+                Point::new(offset + (point.x as f64*width_translation) as i32, offset + (point.y as f64*height_translation) as i32));
         };
         printed_points
     }
