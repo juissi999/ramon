@@ -11,8 +11,19 @@ use std::time::Duration;
 
 static VISUALIZATION_DECAY:std::time::Duration = std::time::Duration::from_secs(10);
 
+fn change_packet_size_boundary(max_packet_len_to_display: u16, printed_tcp: &mut Coordinates, printed_udp: &mut Coordinates) -> u16 {
+    // clear previous packets
+    printed_tcp.clear_all();
+    printed_udp.clear_all();
+    if max_packet_len_to_display == 1500 {
+        65_535
+    } else {
+        1500
+    }
+}
+
 pub fn display(packets: std::sync::Arc<std::sync::Mutex<Vec<PacketContents>>>) -> Result<(), String> {
-    let max_packet_len_to_display: u16 = 65_535;
+    let mut max_packet_len_to_display: u16 = 65_535;
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
 
@@ -44,34 +55,29 @@ pub fn display(packets: std::sync::Arc<std::sync::Mutex<Vec<PacketContents>>>) -
                     keycode: Some(Keycode::Escape),
                     ..
                 } => break 'running,
-                // Event::KeyDown {
-                //     keycode: Some(Keycode::A),
-                //     ..
-                // } => printit(&mut canvas, win_width, win_height),
+                Event::KeyDown {
+                    keycode: Some(Keycode::A),
+                    ..
+                } => max_packet_len_to_display = change_packet_size_boundary(max_packet_len_to_display, &mut printed_tcp, &mut printed_udp),
                 _ => {}
             }
         }
+
         // get windows currenct size
         let width ;
         let height;
         (width, height) = canvas.window().size();
 
         let mut packet_vector = packets.lock().unwrap();
-        println!("len packets:{}", packet_vector.len());
 
         let now = Instant::now();
 
         for packet in packet_vector.iter() {
-            println!("{:?}", packet.length);
-            if packet.length <= max_packet_len_to_display {
-                // filter out packets that are out of visualization area
-                if packet.transmission_protocol == "TCP" {
-                    printed_tcp.add_point(packet.source_port, max_packet_len_to_display-packet.length, now);
-                } else if packet.transmission_protocol == "UDP" {
-                    printed_udp.add_point(packet.source_port, max_packet_len_to_display-packet.length, now);
-                }
+            if packet.transmission_protocol == "TCP" {
+                printed_tcp.add_point(packet.source_port, packet.length, now);
+            } else if packet.transmission_protocol == "UDP" {
+                printed_udp.add_point(packet.source_port, packet.length, now);
             }
-            //println!("Received packet.");
         }
         packet_vector.clear();
 
@@ -89,9 +95,9 @@ pub fn display(packets: std::sync::Arc<std::sync::Mutex<Vec<PacketContents>>>) -
         let height_translation =  (height - 2*offset as u32) as f64 / max_packet_len_to_display as f64;
 
         canvas.set_draw_color(Color::RGB(255, 182, 193));
-        canvas.draw_points(printed_tcp.get_points(width_translation, height_translation, offset).as_slice()).unwrap();
+        canvas.draw_points(printed_tcp.get_points(width_translation, height_translation, max_packet_len_to_display, offset).as_slice()).unwrap();
         canvas.set_draw_color(Color::RGB(144, 238, 144));
-        canvas.draw_points(printed_udp.get_points(width_translation, height_translation, offset).as_slice()).unwrap();
+        canvas.draw_points(printed_udp.get_points(width_translation, height_translation, max_packet_len_to_display, offset).as_slice()).unwrap();
         canvas.present();
         // The rest of the game loop goes here...
     }

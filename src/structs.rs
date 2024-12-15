@@ -34,6 +34,11 @@ impl Coordinates {
         self.points.push(Coordinate{x, y, created:now});
     }
 
+    pub fn clear_all(&mut self) {
+        // remove all points from draw vector
+        self.points.clear();
+    }
+
     pub fn clear_old(&mut self) {
         // remove old points from draw vector
         let mut idx = 0 as usize;
@@ -47,12 +52,16 @@ impl Coordinates {
         };
     }
 
-    pub fn get_points(&self, width_translation: f64, height_translation: f64, offset: i32) -> Vec<Point> {
+    pub fn get_points(&self, width_translation: f64, height_translation: f64, max_packet_len_to_display:u16, offset: i32) -> Vec<Point> {
         // return points as vector
         let mut printed_points = Vec::new();
         for point in self.points.iter() {
             printed_points.push(
-                Point::new(offset + (point.x as f64*width_translation) as i32, offset + (point.y as f64*height_translation) as i32));
+                Point::new(
+                    offset + (point.x as f64*width_translation) as i32,
+                    offset + ((max_packet_len_to_display as i32 - point.y as i32) as f64*height_translation) as i32
+                    )
+                );
         };
         printed_points
     }
