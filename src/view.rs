@@ -11,15 +11,18 @@ use std::time::Duration;
 
 static VISUALIZATION_DECAY:std::time::Duration = std::time::Duration::from_secs(10);
 
-fn change_packet_size_boundary(max_packet_len_to_display: u16, printed_tcp: &mut Coordinates, printed_udp: &mut Coordinates) -> u16 {
-    // clear previous packets
-    printed_tcp.clear_all();
-    printed_udp.clear_all();
+fn change_packet_size_boundary(max_packet_len_to_display: u16) -> u16 {
     if max_packet_len_to_display == 1500 {
         65_535
     } else {
         1500
     }
+}
+
+fn clear_packets(printed_tcp: &mut Coordinates, printed_udp: &mut Coordinates) -> () {
+    // clear previous packets
+    printed_tcp.clear_all();
+    printed_udp.clear_all();
 }
 
 pub fn display(packets: std::sync::Arc<std::sync::Mutex<Vec<PacketContents>>>) -> Result<(), String> {
@@ -47,6 +50,7 @@ pub fn display(packets: std::sync::Arc<std::sync::Mutex<Vec<PacketContents>>>) -
 
     let mut printed_tcp = Coordinates::new(VISUALIZATION_DECAY);
     let mut printed_udp = Coordinates::new(VISUALIZATION_DECAY);
+    let mut index = 0;
     'running: loop {
         for event in event_pump.poll_iter() {
             match event {
@@ -58,7 +62,11 @@ pub fn display(packets: std::sync::Arc<std::sync::Mutex<Vec<PacketContents>>>) -
                 Event::KeyDown {
                     keycode: Some(Keycode::A),
                     ..
-                } => max_packet_len_to_display = change_packet_size_boundary(max_packet_len_to_display, &mut printed_tcp, &mut printed_udp),
+                } => max_packet_len_to_display = change_packet_size_boundary(max_packet_len_to_display),
+                Event::KeyDown {
+                    keycode: Some(Keycode::D),
+                    ..
+                } => clear_packets(&mut printed_tcp, &mut printed_udp),
                 _ => {}
             }
         }
@@ -68,10 +76,11 @@ pub fn display(packets: std::sync::Arc<std::sync::Mutex<Vec<PacketContents>>>) -
         let height;
         (width, height) = canvas.window().size();
 
+        // get & iterate packets
         let mut packet_vector = packets.lock().unwrap();
-
         let now = Instant::now();
 
+        index +=1;
         for packet in packet_vector.iter() {
             if packet.transmission_protocol == "TCP" {
                 printed_tcp.add_point(packet.source_port, packet.length, now);
@@ -88,17 +97,19 @@ pub fn display(packets: std::sync::Arc<std::sync::Mutex<Vec<PacketContents>>>) -
         canvas.set_draw_color(Color::RGB(51, 51, 51));
         canvas.clear();
 
-        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 10));
-
+        // get points to draw and perform drawing translations
         let offset: i32 =  10;
         let width_translation = (width - 2*(offset as u32)) as f64 / 65535.0;
         let height_translation =  (height - 2*offset as u32) as f64 / max_packet_len_to_display as f64;
-
+        
         canvas.set_draw_color(Color::RGB(255, 182, 193));
         canvas.draw_points(printed_tcp.get_points(width_translation, height_translation, max_packet_len_to_display, offset).as_slice()).unwrap();
         canvas.set_draw_color(Color::RGB(144, 238, 144));
         canvas.draw_points(printed_udp.get_points(width_translation, height_translation, max_packet_len_to_display, offset).as_slice()).unwrap();
+        
         canvas.present();
+
+        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 10));
         // The rest of the game loop goes here...
     }
 

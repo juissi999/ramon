@@ -34,6 +34,11 @@ impl Coordinates {
         self.points.push(Coordinate{x, y, created:now});
     }
 
+    pub fn len(&mut self) -> usize {
+        // get point vector length
+        self.points.len()
+    }
+
     pub fn clear_all(&mut self) {
         // remove all points from draw vector
         self.points.clear();
