@@ -22,6 +22,7 @@ pub struct Coordinates {
     decay_duration: std::time::Duration
 }
 
+#[allow(dead_code)]
 impl Coordinates {
     pub fn new(visualization_decay:std::time::Duration) -> Self {
         Coordinates{
@@ -38,7 +39,7 @@ impl Coordinates {
         // get point vector length
         self.points.len()
     }
-
+    
     pub fn clear_all(&mut self) {
         // remove all points from draw vector
         self.points.clear();

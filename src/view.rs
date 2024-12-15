@@ -50,7 +50,6 @@ pub fn display(packets: std::sync::Arc<std::sync::Mutex<Vec<PacketContents>>>) -
 
     let mut printed_tcp = Coordinates::new(VISUALIZATION_DECAY);
     let mut printed_udp = Coordinates::new(VISUALIZATION_DECAY);
-    let mut index = 0;
     'running: loop {
         for event in event_pump.poll_iter() {
             match event {
@@ -80,7 +79,6 @@ pub fn display(packets: std::sync::Arc<std::sync::Mutex<Vec<PacketContents>>>) -
         let mut packet_vector = packets.lock().unwrap();
         let now = Instant::now();
 
-        index +=1;
         for packet in packet_vector.iter() {
             if packet.transmission_protocol == "TCP" {
                 printed_tcp.add_point(packet.source_port, packet.length, now);
