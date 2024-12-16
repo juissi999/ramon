@@ -100,9 +100,9 @@ pub fn display(packets: std::sync::Arc<std::sync::Mutex<Vec<PacketContents>>>) -
         let width_translation = (width - 2*(offset as u32)) as f64 / 65535.0;
         let height_translation =  (height - 2*offset as u32) as f64 / max_packet_len_to_display as f64;
         
-        canvas.set_draw_color(Color::RGB(255, 182, 193));
+        canvas.set_draw_color(Color::RGB(124, 248, 124));
         canvas.draw_points(printed_tcp.get_points(width_translation, height_translation, max_packet_len_to_display, offset).as_slice()).unwrap();
-        canvas.set_draw_color(Color::RGB(144, 238, 144));
+        canvas.set_draw_color(Color::RGB(104, 122, 254));
         canvas.draw_points(printed_udp.get_points(width_translation, height_translation, max_packet_len_to_display, offset).as_slice()).unwrap();
         
         canvas.present();

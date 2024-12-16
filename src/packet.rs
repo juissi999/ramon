@@ -7,7 +7,7 @@ pub fn print_network_interfaces_list(network_interfaces: &Vec<pcap::Device>) {
     let mut devindice = 0;
     for device in network_interfaces {
         let device_clone = device.clone();
-        println!("Device {0}: {1}", devindice, device_clone.desc.unwrap_or(String::from("default")));
+        println!("Device {0}: {1}", devindice, device_clone.desc.unwrap_or(String::from("No description")));
         devindice+=1;
     }
 }
