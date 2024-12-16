@@ -6,7 +6,8 @@ pub fn print_network_interfaces_list(network_interfaces: &Vec<pcap::Device>) {
     
     let mut devindice = 0;
     for device in network_interfaces {
-        println!("Device {} {:?}", devindice, device.name);
+        let device_clone = device.clone();
+        println!("Device {0}: {1}", devindice, device_clone.desc.unwrap_or(String::from("default")));
         devindice+=1;
     }
 }
@@ -54,7 +55,7 @@ pub fn parse_packet(packet: pcap::Packet) -> PacketContents{
         destination_addr: ipv4_fields.2,
         source_port: tcp_udp_fields.0,
         destination_port: tcp_udp_fields.1,
-        length: pdata[14+20..].len() as i32,
+        length: pdata[14+20..].len() as u16,
         data: pdata[14+20..].to_vec()
     };
 
@@ -107,7 +108,7 @@ pub fn parse_tcp_udp_fields(tcp_data: &[u8])-> (u16, u16) {
 
 pub fn list_2_ip(iparray: &[u8]) -> String {
     // generate ip-address type string from array of u8
-    let mut ipstr = String::from("");
+    let mut ipstr = String::new();
 
     for num in iparray {
         ipstr.push_str(&num.to_string());
