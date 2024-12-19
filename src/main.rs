@@ -2,6 +2,7 @@ use std::io;
 use std::convert::TryFrom;
 use std::thread;
 use std::sync::{Arc, Mutex};
+use std::sync::mpsc::channel;
 
 mod packet;
 mod view;
@@ -13,8 +14,8 @@ fn main() {
     let packets = Arc::new(Mutex::new(vec![]));
     let packets_vector_clone = Arc::clone(&packets);
 
-    // let mut window_visible = true; 
-    // let x = &mut window_visible;
+    // create signalling channel between threads
+    let (signal_sender, signal_receiver) = channel::<u8>();
 
     let network_interfaces = pcap::Device::list().unwrap();
     packet::print_network_interfaces_list(&network_interfaces);
@@ -41,7 +42,7 @@ fn main() {
 
     // create thread for visualization
     thread::spawn(move || {
-        let a = view::display(packets_vector_clone);
+        let a = view::display(packets_vector_clone, signal_sender);
         match a {
             Ok(()) => {
                 println!("Window was closed");
@@ -52,7 +53,5 @@ fn main() {
     });
 
 
-    let capture = pcap::Capture::from_device(device_name).unwrap().open().unwrap();
-
-    packet::listen_and_print_packets(capture, packets);
+    packet::listen_and_print_packets(device_name, packets, signal_receiver);
 }

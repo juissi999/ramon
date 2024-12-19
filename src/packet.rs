@@ -1,3 +1,5 @@
+use std::sync::mpsc::TryRecvError;
+
 use pcap;
 
 use crate::structs::PacketContents;
@@ -12,10 +14,24 @@ pub fn print_network_interfaces_list(network_interfaces: &Vec<pcap::Device>) {
     }
 }
 
-pub fn listen_and_print_packets(mut capture: pcap::Capture<pcap::Active>, packets: std::sync::Arc<std::sync::Mutex<Vec<PacketContents>>>) {
-    // print packets continously
+pub fn listen_and_print_packets(device_name: &str, packets: std::sync::Arc<std::sync::Mutex<Vec<PacketContents>>>, signal_receiver: std::sync::mpsc::Receiver<u8>) {
 
-    loop {
+    let mut capture = pcap::Capture::from_device(device_name).unwrap().open().unwrap().setnonblock().unwrap();
+
+    // print packets continously, until terminated by other thread
+    'running_capture: loop {
+        // check if quit signal came
+        let system_signal = signal_receiver.try_recv();
+        match system_signal {
+            Ok(msg) => {
+                if msg == 1 {
+                    // terminate loop
+                    break 'running_capture;
+                }
+            },
+            Err(error) => if error==TryRecvError::Disconnected { println!("Signaling error: {error:?}") }
+        }
+            
         // get a packet and print its bytes
         let packet_result = capture.next_packet();
         match packet_result {
@@ -23,7 +39,7 @@ pub fn listen_and_print_packets(mut capture: pcap::Capture<pcap::Active>, packet
                 let parsed_packet = parse_packet(packet.clone());
                 display_packet(parsed_packet, packets.clone());
             },
-            Err(error) => println!("Packet capture error: {error:?}"),
+            Err(error) => if error !=pcap::Error::TimeoutExpired {println!("Packet capture error: {error:?}")},
         };
     }
 }

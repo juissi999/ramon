@@ -25,7 +25,8 @@ fn clear_packets(printed_tcp: &mut Coordinates, printed_udp: &mut Coordinates) -
     printed_udp.clear_all();
 }
 
-pub fn display(packets: std::sync::Arc<std::sync::Mutex<Vec<PacketContents>>>) -> Result<(), String> {
+pub fn display(packets: std::sync::Arc<std::sync::Mutex<Vec<PacketContents>>>,
+    signal_sender: std::sync::mpsc::Sender<u8>) -> Result<(), String> {
     let mut max_packet_len_to_display: u16 = 65_535;
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
@@ -57,7 +58,7 @@ pub fn display(packets: std::sync::Arc<std::sync::Mutex<Vec<PacketContents>>>) -
                 | Event::KeyDown {
                     keycode: Some(Keycode::Escape),
                     ..
-                } => break 'running,
+                } => {signal_sender.send(1).unwrap(); break 'running},
                 Event::KeyDown {
                     keycode: Some(Keycode::A),
                     ..
