@@ -1,4 +1,4 @@
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone, Debug)]
 pub enum EtherType {
     IPv4,
     IPv6,
@@ -6,7 +6,7 @@ pub enum EtherType {
     Other
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone, Debug)]
 pub enum IPProtocol {
     TCP,
     UDP,
