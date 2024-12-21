@@ -1,8 +1,10 @@
 use std::time::Instant;
 use sdl2::rect::Point;
+use crate::enums;
+
 pub struct PacketContents {
-    pub network_protocol: String,
-    pub transmission_protocol: String,
+    pub network_protocol: enums::EtherType,
+    pub transmission_protocol: enums::IPProtocol,
     pub source_addr: String,
     pub destination_addr: String,
     pub source_port: u16,

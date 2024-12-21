@@ -7,6 +7,7 @@ use std::sync::mpsc::channel;
 mod packet;
 mod view;
 mod structs;
+mod enums;
 
 
 fn main() {

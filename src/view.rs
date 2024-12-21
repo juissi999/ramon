@@ -1,6 +1,7 @@
 extern crate sdl2;
 use crate::structs::PacketContents;
 use crate::structs::Coordinates;
+use crate::enums::IPProtocol;
 
 use std::time::Instant;
 use sdl2::event::Event;
@@ -81,9 +82,9 @@ pub fn display(packets: std::sync::Arc<std::sync::Mutex<Vec<PacketContents>>>,
         let now = Instant::now();
 
         for packet in packet_vector.iter() {
-            if packet.transmission_protocol == "TCP" {
+            if packet.transmission_protocol == IPProtocol::TCP {
                 printed_tcp.add_point(packet.source_port, packet.length, now);
-            } else if packet.transmission_protocol == "UDP" {
+            } else if packet.transmission_protocol == IPProtocol::UDP {
                 printed_udp.add_point(packet.source_port, packet.length, now);
             }
         }
@@ -109,7 +110,6 @@ pub fn display(packets: std::sync::Arc<std::sync::Mutex<Vec<PacketContents>>>,
         canvas.present();
 
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 10));
-        // The rest of the game loop goes here...
     }
 
     Ok(())

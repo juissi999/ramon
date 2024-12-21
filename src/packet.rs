@@ -3,6 +3,7 @@ use std::sync::mpsc::TryRecvError;
 use pcap;
 
 use crate::structs::PacketContents;
+use crate::enums;
 
 pub fn print_network_interfaces_list(network_interfaces: &Vec<pcap::Device>) {
     
@@ -51,65 +52,85 @@ pub fn display_packet(packet: PacketContents, packets: std::sync::Arc<std::sync:
 
 pub fn parse_packet(packet: pcap::Packet) -> PacketContents{
     // a function that handles packet printing process
-    let pdata:&[u8] = packet.data;
-    let ethp:String = network_layer_protocol(pdata);
-    let mut ipv4_fields: (String, String, String) = (String::new(), String::new(), String::new());
-    let mut tcp_udp_fields: (u16, u16) = (0, 0);
-    if ethp == "ipv4" {
-        ipv4_fields = parse_ipv4_fields(&pdata[14..]);
-        if ipv4_fields.0 == "TCP" || ipv4_fields.0 == "UDP" {
-            tcp_udp_fields = parse_tcp_udp_fields(&pdata[14+20..]);
-        }
-    }
+
     // println!("header:{:?}", packet.header);
     // println!("data:{:?}", pdata);
-    
+
+    let pdata:&[u8] = packet.data;
+    let ether_type:enums::EtherType = get_ether_type(pdata);
+    let mut ip_fields: (enums::IPProtocol, String, String) = (enums::IPProtocol::Other, String::new(), String::new());
+    let mut tcp_udp_fields: (u16, u16) = (0, 0);
+    if ether_type == enums::EtherType::IPv4 {
+        ip_fields = parse_ipv4_fields(&pdata[14..]);
+        if ip_fields.0 == enums::IPProtocol::TCP || ip_fields.0 == enums::IPProtocol::UDP {
+            tcp_udp_fields = parse_tcp_udp_fields(&pdata[14+20..]);
+        }
+    } else if ether_type == enums::EtherType::IPv6 {
+        ip_fields = parse_ipv6_fields(&pdata[14..]);
+        if ip_fields.0 == enums::IPProtocol::TCP || ip_fields.0 == enums::IPProtocol::UDP {
+            tcp_udp_fields = parse_tcp_udp_fields(&pdata[14+40..]);
+        }
+    } else if ether_type == enums::EtherType::ARP {
+    }
+
     let parsed_packet = PacketContents{
-        network_protocol: ethp,
-        transmission_protocol: ipv4_fields.0,
-        source_addr: ipv4_fields.1,
-        destination_addr: ipv4_fields.2,
+        network_protocol: ether_type,
+        transmission_protocol: ip_fields.0,
+        source_addr: ip_fields.1,
+        destination_addr: ip_fields.2,
         source_port: tcp_udp_fields.0,
         destination_port: tcp_udp_fields.1,
         length: pdata[14+20..].len() as u16,
         data: pdata[14+20..].to_vec()
     };
-
+    
     parsed_packet
 }
 
-pub fn network_layer_protocol(data: &[u8]) -> String {
+pub fn get_ether_type(data: &[u8]) -> enums::EtherType {
     // analyze ethernet packet content
     let protocol_bytes: u16 = data[12] as u16 * 256 + data[13] as u16;
 
     if protocol_bytes == 0x0800 {
-        String::from("ipv4")
+        enums::EtherType::IPv4
     } else if protocol_bytes == 0x0806 {
-        String::from("ARP")
+        enums::EtherType::ARP
     } else if protocol_bytes == 0x86dd {
-        String::from("ipv6")
+        enums::EtherType::IPv6
     } else {
-        String::from("unknown")
+        enums::EtherType::Other
     }
 }
 
-pub fn transmission_layer_protocol(bytes: u8) -> String {
+pub fn transmission_layer_protocol(bytes: u8) -> enums::IPProtocol {
     // analyze ethernet packet content
-    if bytes==0x06 {
-        String::from("TCP")
+    if bytes==0x01 {
+        enums::IPProtocol::IPv4ICMP
+    } else if bytes==0x02  {
+        enums::IPProtocol::IGMP
+    } else if bytes==0x06 {
+        enums::IPProtocol::TCP
     } else if bytes==0x11 {
-        String::from("UDP")
-    } else if bytes==0x01 {
-        String::from("ICMP")
+        enums::IPProtocol::UDP
+    } else if bytes==0x3A {
+        enums::IPProtocol::IPv6ICMP
     } else {
-        String::from("unknown")
+        enums::IPProtocol::Other
     }
 }
 
-pub fn parse_ipv4_fields(ip_data: &[u8]) -> (String, String, String) {
+pub fn parse_ipv4_fields(ip_data: &[u8]) -> (enums::IPProtocol, String, String) {
     // analyze ipv4-packet content
     let tlp = transmission_layer_protocol(ip_data[9]);
-    let fields: (String, String, String) = (tlp, list_2_ip(&ip_data[12..16]), list_2_ip(&ip_data[16..20]));
+    let fields: (enums::IPProtocol, String, String) = (tlp, list_2_ip(&ip_data[12..16]), list_2_ip(&ip_data[16..20]));
+
+    fields
+}
+
+pub fn parse_ipv6_fields(ip_data: &[u8]) -> (enums::IPProtocol, String, String) {
+    // analyze ipv6-packet content
+    let tlp = transmission_layer_protocol(ip_data[6]);
+    let fields: (enums::IPProtocol, String, String) = (tlp, String::from("not implemented yet"), String::from("not implemented yet"));
 
     fields
 }
