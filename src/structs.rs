@@ -60,7 +60,7 @@ impl TimestampedPackets {
         };
     }
 
-    pub fn get_points(&self, width_translation: f64, height_translation: f64, max_packet_len_to_display:u16, offset: i32) -> Vec<Point> {
+    pub fn get_port_length_plane_points(&self, width_translation: f64, height_translation: f64, max_packet_len_to_display:u16, offset: i32) -> Vec<Point> {
         // return points as vector
         let mut printed_points = Vec::new();
         for timestamped_packet in self.packets.iter() {
