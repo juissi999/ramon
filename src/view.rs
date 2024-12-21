@@ -9,6 +9,7 @@ use std::time::Duration;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
+use sdl2::rect::Point;
 
 static VISUALIZATION_DECAY:std::time::Duration = std::time::Duration::from_secs(10);
 
@@ -101,6 +102,11 @@ pub fn display(packets: std::sync::Arc<std::sync::Mutex<Vec<PacketContents>>>,
         let offset: i32 =  10;
         let width_translation = (width - 2*(offset as u32)) as f64 / 65535.0;
         let height_translation =  (height - 2*offset as u32) as f64 / max_packet_len_to_display as f64;
+
+        canvas.set_draw_color(Color::RGB(70, 70, 70));
+        canvas.draw_line(Point::new(offset,height as i32 - offset), Point::new(width as i32 - offset, height as i32 - offset)).unwrap();
+        canvas.draw_line(Point::new(offset, height as i32 - offset), Point::new(offset, offset)).unwrap();
+
         canvas.set_draw_color(Color::RGB(124, 248, 124));
         canvas.draw_points(printed_tcp.get_points(width_translation, height_translation, max_packet_len_to_display, offset).as_slice()).unwrap();
         canvas.set_draw_color(Color::RGB(104, 122, 254));

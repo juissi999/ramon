@@ -65,7 +65,7 @@ impl TimestampedPackets {
         let mut printed_points = Vec::new();
         for timestamped_packet in self.packets.iter() {
             let draw_point = Point::new(
-                offset + (timestamped_packet.packet.source_port as f64*width_translation) as i32,
+                offset + (timestamped_packet.packet.source_port as f64*width_translation).ceil() as i32,
                 offset + ((max_packet_len_to_display as i32 - timestamped_packet.packet.length as i32) as f64*height_translation) as i32
             );
 
