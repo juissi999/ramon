@@ -12,6 +12,7 @@ use sdl2::pixels::Color;
 use sdl2::rect::Point;
 
 static VISUALIZATION_DECAY:std::time::Duration = std::time::Duration::from_secs(10);
+static BACKGROUND_COLOR:Color = Color::RGB(51, 51, 51);
 
 fn change_packet_size_boundary(max_packet_len_to_display: u16) -> u16 {
     if max_packet_len_to_display == 1500 {
@@ -31,24 +32,7 @@ pub fn display(packets: std::sync::Arc<std::sync::Mutex<Vec<PacketContents>>>,
     signal_sender: std::sync::mpsc::Sender<u8>) -> Result<(), String> {
     let mut max_packet_len_to_display: u16 = 65_535;
     let sdl_context = sdl2::init()?;
-    let video_subsystem = sdl_context.video()?;
-
-    let initial_win_width: u32 = 800;
-    let initial_win_height: u32 = 600;
-
-    let window = video_subsystem
-        .window("ramon", initial_win_width, initial_win_height)
-        .resizable()
-        .position_centered()
-        .opengl()
-        .build()
-        .map_err(|e| e.to_string())?;
-
-    let mut canvas = window.into_canvas().build().map_err(|e| e.to_string())?;
-
-    canvas.set_draw_color(Color::RGB(51, 51, 51));
-    canvas.clear();
-    canvas.present();
+    let mut canvas = create_window_with_canvas(&sdl_context, BACKGROUND_COLOR)?;
     let mut event_pump = sdl_context.event_pump()?;
 
     let mut printed_tcp = TimestampedPackets::new(VISUALIZATION_DECAY);
@@ -95,11 +79,11 @@ pub fn display(packets: std::sync::Arc<std::sync::Mutex<Vec<PacketContents>>>,
         printed_tcp.clear_old();
         printed_udp.clear_old();
 
-        canvas.set_draw_color(Color::RGB(51, 51, 51));
+        canvas.set_draw_color(BACKGROUND_COLOR);
         canvas.clear();
 
         // get points to draw and perform drawing translations
-        let offset: i32 =  10;
+        let offset: i32 =  20;
         let width_translation = (width - 2*(offset as u32)) as f64 / 65535.0;
         let height_translation =  (height - 2*offset as u32) as f64 / max_packet_len_to_display as f64;
 
@@ -118,4 +102,23 @@ pub fn display(packets: std::sync::Arc<std::sync::Mutex<Vec<PacketContents>>>,
     }
 
     Ok(())
+}
+
+fn create_window_with_canvas(sdl_context: &sdl2::Sdl, background_color: Color) -> Result<sdl2::render::Canvas<sdl2::video::Window>, String> {
+    let video_subsystem = sdl_context.video()?;
+    let initial_win_width: u32 = 800;
+    let initial_win_height: u32 = 600;
+    let window = video_subsystem
+        .window("ramon", initial_win_width, initial_win_height)
+        .resizable()
+        .position_centered()
+        .opengl()
+        .build()
+        .map_err(|e| e.to_string())?;
+    let mut canvas = window.into_canvas().build().map_err(|e| e.to_string())?;
+    canvas.set_draw_color(background_color);
+    canvas.clear();
+    canvas.present();
+    
+    Ok(canvas)
 }
